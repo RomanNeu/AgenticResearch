@@ -1,0 +1,87 @@
+name: Nightly Data Pipeline
+
+# Runs at 00:00 UTC = 01:00 CET (winter) / 02:00 CEST (summer)
+# All scripts execute sequentially; a failure in one step does NOT abort the rest.
+
+on:
+  schedule:
+    - cron: "0 0 * * *"          # every day at 00:00 UTC
+  workflow_dispatch:               # allow manual trigger from GitHub UI
+    inputs:
+      date_override:
+        description: "Override date for daily_mover_explain (YYYY-MM-DD). Leave blank for yesterday."
+        required: false
+        default: ""
+
+jobs:
+  pipeline:
+    name: Run nightly data pipeline
+    runs-on: ubuntu-latest
+    timeout-minutes: 120           # hard ceiling — prevents runaway jobs
+
+    env:
+      SUPABASE_URL:        ${{ secrets.SUPABASE_URL }}
+      SUPABASE_SERVICE_KEY: ${{ secrets.SUPABASE_SERVICE_KEY }}
+      FMP_API_KEY:         ${{ secrets.FMP_API_KEY }}
+      OPENAI_API_KEY:      ${{ secrets.OPENAI_API_KEY }}
+
+    steps:
+      # ── 1. Checkout ──────────────────────────────────────────────────────────
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # ── 2. Python setup ──────────────────────────────────────────────────────
+      - name: Set up Python 3.12
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      # ── 3. Fetch prices ───────────────────────────────────────────────────────
+      - name: Fetch EOD prices
+        run: python fetch_prices.py
+        continue-on-error: true    # log failure, keep going
+
+      # ── 4. Fetch earnings ────────────────────────────────────────────────────
+      - name: Fetch earnings (EPS + revenue)
+        run: python fetch_earnings.py
+        continue-on-error: true
+
+      # ── 5. Compute YoY earnings growth ───────────────────────────────────────
+      - name: Compute earnings growth
+        run: python compute_earnings_growth.py
+        continue-on-error: true
+
+      # ── 6. Fetch transcripts ─────────────────────────────────────────────────
+      - name: Fetch earnings transcripts
+        run: python fetch_transcripts.py
+        continue-on-error: true
+
+      # ── 7. Analyse transcripts ───────────────────────────────────────────────
+      - name: Analyse transcripts (LLM scoring)
+        run: python analyze_transcripts.py
+        continue-on-error: true
+
+      # ── 8. Explain daily movers ──────────────────────────────────────────────
+      - name: Explain daily movers
+        run: |
+          if [ -n "${{ github.event.inputs.date_override }}" ]; then
+            python daily_mover_explain.py "${{ github.event.inputs.date_override }}"
+          else
+            python daily_mover_explain.py
+          fi
+        continue-on-error: true
+
+      # ── 9. Upload artefacts on failure ───────────────────────────────────────
+      - name: Upload failure report (if any)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: pipeline-failure-reports
+          path: |
+            earnings_failed.json
+          if-no-files-found: ignore
+          retention-days: 14
