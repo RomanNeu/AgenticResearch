@@ -1,0 +1,44 @@
+{
+  "run_at": "2026-05-30T08:10:49.074289+00:00",
+  "total": 275,
+  "success": 265,
+  "skipped": 3,
+  "failed": 7,
+  "failed_tickers": [
+    {
+      "ticker": "XOM",
+      "symbol": "XOM",
+      "error": "{'message': 'numeric field overflow', 'code': '22003', 'hint': None, 'details': 'A field with precision 8, scale 4 must round to an absolute value less than 10^4.'}"
+    },
+    {
+      "ticker": "MSTR",
+      "symbol": "MSTR",
+      "error": "{'message': 'numeric field overflow', 'code': '22003', 'hint': None, 'details': 'A field with precision 8, scale 4 must round to an absolute value less than 10^4.'}"
+    },
+    {
+      "ticker": "SHOP",
+      "symbol": "SHOP",
+      "error": "{'message': 'numeric field overflow', 'code': '22003', 'hint': None, 'details': 'A field with precision 8, scale 4 must round to an absolute value less than 10^4.'}"
+    },
+    {
+      "ticker": "TTWO",
+      "symbol": "TTWO",
+      "error": "{'message': 'numeric field overflow', 'code': '22003', 'hint': None, 'details': 'A field with precision 8, scale 4 must round to an absolute value less than 10^4.'}"
+    },
+    {
+      "ticker": "BAS.DE",
+      "symbol": "BAS.DE",
+      "error": "{'message': 'numeric field overflow', 'code': '22003', 'hint': None, 'details': 'A field with precision 8, scale 4 must round to an absolute value less than 10^4.'}"
+    },
+    {
+      "ticker": "ENR.DE",
+      "symbol": "ENR.DE",
+      "error": "{'message': 'numeric field overflow', 'code': '22003', 'hint': None, 'details': 'A field with precision 8, scale 4 must round to an absolute value less than 10^4.'}"
+    },
+    {
+      "ticker": "CSGN.SW",
+      "symbol": "CSGN.SW",
+      "error": "{'message': 'numeric field overflow', 'code': '22003', 'hint': None, 'details': 'A field with precision 8, scale 4 must round to an absolute value less than 10^4.'}"
+    }
+  ]
+}
